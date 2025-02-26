@@ -571,17 +571,6 @@ let amount = Math.floor(Math.random() * (max - min + 1)) + min; // Pilih hasil s
                 violet_small: [0],
             };
 
-            const smallestCategory = categories.reduce((smallest, category) =>
-                (!smallest || category.total_money < smallest.total_money) ? category : smallest
-            );
-
-            const betsForCategory = colorBets[smallestCategory.name] || [];
-            const availableBets = betsForCategory.filter(bet =>
-                !categories.find(category => category.name === smallestCategory.name && category.total_money < smallestCategory.total_money)
-            );
-
-            const lowestBet = availableBets.length > 0 ? availableBets[0] : Math.min(...betsForCategory);
-            amount = lowestBet;
         }
 
         // xanh đỏ tím
