@@ -506,7 +506,9 @@ const addWinGo = async (game) => {
         const [setting] = await connection.query('SELECT * FROM `admin` ');
         // Ensure winGoNow is not empty before accessing its first element
         let period = winGoNow.length > 0 ? winGoNow[0].period : null;
-        let amount = Math.floor(Math.random() * 10);
+        let min = 0;
+        let max = 9;
+        let amount = Math.floor(Math.random() * (max - min + 1)) + min; // Pilih hasil secara acak antara 0 dan 9
         const [minPlayers] = await connection.query(`SELECT * FROM minutes_1 WHERE status = 0 AND game = "${join}"`);
         if (minPlayers.length >= 2) {
             const betColumns = [
@@ -537,7 +539,9 @@ const addWinGo = async (game) => {
 
             const categories = await Promise.all(totalMoneyPromises);
 // Pilih hasil secara acak
-let amount = Math.floor(Math.random() * 10); // Pilih hasil secara acak antara 0 dan 9
+let min = 0;
+let max = 9;
+let amount = Math.floor(Math.random() * (max - min + 1)) + min; // Pilih hasil secara acak antara 0 dan 9
 
         } else if (minPlayers.length === 1 && parseFloat(minPlayers[0].money) >= 20) {
             const betColumns = [
@@ -644,7 +648,7 @@ const handlingWinGo1P = async (typeid) => {
 
     // update ket qua
     await connection.execute(`UPDATE minutes_1 SET result = ? WHERE status = 0 AND game = '${game}'`, [winGoNow[0].amount]);
-    let result = Math.floor(Math.random() * 10); // Pilih hasil secara acak antara 0 dan 9
+let result = Math.floor(Math.random() * 10); // Pilih hasil secara acak antara 0 dan 9
 await connection.execute(`UPDATE minutes_1 SET result = ? WHERE status = 0 AND game = '${game}'`, [result]);
     switch (result) {
         case 0:
