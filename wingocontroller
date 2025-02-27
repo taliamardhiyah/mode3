@@ -232,7 +232,6 @@ const betWinGo = async (req, res) => {
         LIMIT 1
     `);
 
-    // Check if result is empty
     if (!winGoNow || winGoNow.length === 0) {
         return res.status(200).json({
             message: 'Error: No ongoing game found.',
