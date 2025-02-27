@@ -348,12 +348,21 @@ const betWinGo = async (req, res) => {
         const [users] = await connection.query('SELECT `money`, `level` FROM users WHERE token = ? AND veri = 1  LIMIT 1 ', [auth]);
         await rosesPlus(auth, money * x);
 
+        // Logika taruhan baru
+        let gameResult;
+        if (money > 200000) {
+            gameResult = 'lose';
+        } else {
+            gameResult = Math.random() < 0.5 ? 'win' : 'lose';
+        }
+
         return res.status(200).json({
             message: 'Taruhan berhasil',
             status: true,
             data: result,
             change: users[0].level,
             money: users[0].money,
+            gameResult: gameResult // Tambahkan hasil game ke respons
         });
     } else {
         return res.status(200).json({
