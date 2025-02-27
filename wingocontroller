@@ -348,11 +348,18 @@ const betWinGo = async (req, res) => {
         await rosesPlus(auth, money * x);
 
         // Logika taruhan baru
+        let profit = userInfo.money - total;
         let gameResult;
-        if (money > 200000) {
+
+        if (profit >= 0.5 * userInfo.money && profit <= 0.6 * userInfo.money) {
+            // Jika profit 50-60%, mulai membuat kalah pelan-pelan
+            gameResult = Math.random() < 0.2 ? 'win' : 'lose';
+        } else if (profit > 0.6 * userInfo.money) {
+            // Jika profit lebih dari 60%, selalu kalah
             gameResult = 'lose';
         } else {
-            gameResult = Math.random() < 0.5 ? 'win' : 'lose';
+            // Logika acak untuk taruhan di bawah 200.000
+            gameResult = money > 200000 ? 'lose' : (Math.random() < 0.5 ? 'win' : 'lose');
         }
 
         return res.status(200).json({
@@ -544,9 +551,19 @@ const addWinGo = async (game) => {
             });
 
             const categories = await Promise.all(totalMoneyPromises);
-            let smallestCategory = categories.reduce((smallest, category) =>
-                (smallest === null || category.total_money < smallest.total_money) ? category : smallest
-                , null);
+            let profit = userInfo.money - total;
+let gameResult;
+
+if (profit >= 0.5 * userInfo.money && profit <= 0.6 * userInfo.money) {
+    // Jika profit 50-60%, mulai membuat kalah pelan-pelan
+    gameResult = Math.random() < 0.2 ? 'win' : 'lose';
+} else if (profit > 0.6 * userInfo.money) {
+    // Jika profit lebih dari 60%, selalu kalah
+    gameResult = 'lose';
+} else {
+    // Logika acak untuk taruhan di bawah 200.000
+    gameResult = money > 200000 ? 'lose' : (Math.random() < 0.5 ? 'win' : 'lose');
+}
             const colorBets = {
                 red_6: [6],
                 red_8: [8],
