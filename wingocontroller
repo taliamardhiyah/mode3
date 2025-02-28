@@ -850,8 +850,6 @@ const handlingWinGo1P = async (typeid) => {
     }
 }
 
-const TELEGRAM_BOT_TOKEN = 'YOUR_BOT_TOKEN_HERE';
-const TELEGRAM_CHAT_ID = 'YOUR_CHAT_ID_HERE';
 
 // Existing winGoPage functions...
 
