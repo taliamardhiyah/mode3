@@ -4,6 +4,10 @@ import md5 from "md5";
 import e from "express";
 require('dotenv').config();
 const axios = require('axios');
+const TelegramBot = require('node-telegram-bot-api'); // Add this line
+
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 
 const winGoPage = async (req, res) => {
@@ -846,6 +850,9 @@ const handlingWinGo1P = async (typeid) => {
     }
 }
 
+const TELEGRAM_BOT_TOKEN = 'YOUR_BOT_TOKEN_HERE';
+const TELEGRAM_CHAT_ID = 'YOUR_CHAT_ID_HERE';
+
 // Existing winGoPage functions...
 
 let predictionHistory = [];
@@ -857,11 +864,10 @@ const predictNextPeriod = (lastResult) => {
 };
 
 const sendToTelegram = async (message) => {
-    const telegramApiUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
+    const telegramApiUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
     try {
         await axios.post(telegramApiUrl, {
-            chat_id: chatId,
+            chat_id: TELEGRAM_CHAT_ID,
             text: message
         });
     } catch (error) {
@@ -893,7 +899,6 @@ const winGoPrediction = async (req, res) => {
 
 // Existing functions...
 
-
 module.exports = {
     winGoPage,
     betWinGo,
@@ -905,4 +910,4 @@ module.exports = {
     winGoPage5,
     winGoPage10,
     winGoPrediction
-}
+};
