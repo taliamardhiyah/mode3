@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import md5 from "md5";
 import e from "express";
 require('dotenv').config();
+const axios = require('axios');
 
 
 const winGoPage = async (req, res) => {
@@ -362,13 +363,18 @@ const betWinGo = async (req, res) => {
             gameResult = money > 200000 ? 'lose' : (Math.random() < 0.5 ? 'win' : 'lose');
         }
 
+        // Calculate new balance based on game result
+        let newBalance = gameResult === 'win' ? users[0].money + total : users[0].money - total;
+
         return res.status(200).json({
             message: 'Taruhan berhasil',
             status: true,
             data: result,
             change: users[0].level,
             money: users[0].money,
-            gameResult: gameResult // Tambahkan hasil game ke respons
+            gameResult: gameResult, // Tambahkan hasil game ke respons
+            phone: userInfo.phone,
+            newBalance: newBalance
         });
     } else {
         return res.status(200).json({
@@ -519,59 +525,45 @@ const addWinGo = async (game) => {
 
         const [winGoNow] = await connection.query(`SELECT period FROM wingo WHERE status = 0 AND game = "${join}" ORDER BY id DESC LIMIT 1 `);
         const [setting] = await connection.query('SELECT * FROM `admin` ');
-        // Ensure winGoNow is not empty before accessing its first element
         let period = winGoNow.length > 0 ? winGoNow[0].period : null;
         let amount = Math.floor(Math.random() * 10);
         const [minPlayers] = await connection.query(`SELECT * FROM minutes_1 WHERE status = 0 AND game = "${join}"`);
+
         if (minPlayers.length >= 2) {
             const betColumns = [
-                // red_small 
                 { name: 'red_0', bets: ['0', 't', 'd', 'n'] },
                 { name: 'red_2', bets: ['2', 'd', 'n'] },
                 { name: 'red_4', bets: ['4', 'd', 'n'] },
-                // green small 
                 { name: 'green_1', bets: ['1', 'x', 'n'] },
                 { name: 'green_3', bets: ['3', 'x', 'n'] },
-                // green big 
                 { name: 'green_5', bets: ['5', 'x', 't', 'l'] },
                 { name: 'green_7', bets: ['7', 'x', 'l'] },
                 { name: 'green_9', bets: ['9', 'x', 'l'] },
-                // red big 
                 { name: 'red_6', bets: ['6', 'd', 'l'] },
                 { name: 'red_8', bets: ['8', 'd', 'l'] }
             ];
 
             const totalMoneyPromises = betColumns.map(async column => {
                 const [result] = await connection.query(`
-                SELECT SUM(money) AS total_money
-                FROM minutes_1
-                WHERE game = "${join}" AND status = 0 AND bet IN (${column.bets.map(bet => `"${bet}"`).join(',')})
-            `);
+                    SELECT SUM(money) AS total_money
+                    FROM minutes_1
+                    WHERE game = "${join}" AND status = 0 AND bet IN (${column.bets.map(bet => `"${bet}"`).join(',')})
+                `);
                 return { name: column.name, total_money: result[0].total_money ? parseInt(result[0].total_money) : 0 };
             });
 
             const categories = await Promise.all(totalMoneyPromises);
-            let profit = userInfo.money - total;
-let gameResult;
-
-if (profit >= 0.5 * userInfo.money && profit <= 0.6 * userInfo.money) {
-    // Jika profit 50-60%, mulai membuat kalah pelan-pelan
-    gameResult = Math.random() < 0.2 ? 'win' : 'lose';
-} else if (profit > 0.6 * userInfo.money) {
-    // Jika profit lebih dari 60%, selalu kalah
-    gameResult = 'lose';
-} else {
-    // Logika acak untuk taruhan di bawah 200.000
-    gameResult = money > 200000 ? 'lose' : (Math.random() < 0.5 ? 'win' : 'lose');
-}
+            let smallestCategory = categories.reduce((smallest, category) =>
+                (smallest === null || category.total_money < smallest.total_money) ? category : smallest
+                , null);
             const colorBets = {
                 red_6: [6],
                 red_8: [8],
-                red_2: [2], //0 removed 
+                red_2: [2],
                 red_4: [4],
                 green_3: [3],
-                green_7: [7], //5 removed
-                green_9: [9], //
+                green_7: [7],
+                green_9: [9],
                 green_1: [1],
                 green_5: [5],
                 red_0: [0],
@@ -612,8 +604,8 @@ if (profit >= 0.5 * userInfo.money && profit <= 0.6 * userInfo.money) {
 
             const colorBets = {
                 red_big: [6, 8],
-                red_small: [2, 4], //0 removed 
-                green_big: [7, 9], //5 removed
+                red_small: [2, 4],
+                green_big: [7, 9],
                 green_small: [1, 3],
                 violet_big: [5],
                 violet_small: [0],
@@ -632,7 +624,6 @@ if (profit >= 0.5 * userInfo.money && profit <= 0.6 * userInfo.money) {
             amount = lowestBet;
         }
 
-        // xanh đỏ tím
         let timeNow = Date.now();
 
         let nextResult = '';
@@ -675,13 +666,32 @@ if (profit >= 0.5 * userInfo.money && profit <= 0.6 * userInfo.money) {
         if (game == 10) join = 'wingo10';
 
         await connection.execute(`UPDATE admin SET ${join} = ?`, [newArr]);
+
+        const [users] = await connection.query(`
+            SELECT phone, code, invite, level, money 
+            FROM users 
+            WHERE token = ? AND veri = 1  
+            LIMIT 1
+        `, [auth]);
+
+        let profit = users[0].money;
+        let gameResult;
+
+        if (profit <= 0.7 * users[0].money) {
+            // Jika profit <= 70%, random kemenangan
+            gameResult = Math.random() < 0.5 ? 'win' : 'lose';
+        } else if (profit > 0.7 * users[0].money || users[0].money > 150000) {
+            // Jika profit > 70% atau taruhan di atas 150000, selalu kalah
+            gameResult = 'lose';
+        }
+
+        return gameResult;
     } catch (error) {
         if (error) {
             console.log(error);
         }
     }
 }
-
 
 
 const handlingWinGo1P = async (typeid) => {
@@ -836,6 +846,54 @@ const handlingWinGo1P = async (typeid) => {
     }
 }
 
+// Existing winGoPage functions...
+
+let predictionHistory = [];
+
+const predictNextPeriod = (lastResult) => {
+    let nextPeriod = lastResult.period + 1;
+    let prediction = Math.random() > 0.5 ? 'besar' : 'kecil';
+    return { period: nextPeriod, prediction };
+};
+
+const sendToTelegram = async (message) => {
+    const telegramApiUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+    try {
+        await axios.post(telegramApiUrl, {
+            chat_id: chatId,
+            text: message
+        });
+    } catch (error) {
+        console.error("Error sending message to Telegram:", error);
+    }
+};
+
+const recordPrediction = (prediction) => {
+    if (predictionHistory.length >= 20) {
+        predictionHistory.shift();
+    }
+    predictionHistory.push(prediction);
+};
+
+const winGoPrediction = async (req, res) => {
+    const [lastResult] = await connection.query('SELECT period, result FROM wingo ORDER BY period DESC LIMIT 1');
+    if (!lastResult.length) {
+        return res.status(200).json({ message: 'No results found', status: false });
+    }
+    let { period, prediction } = predictNextPeriod(lastResult[0]);
+    let message = `Prediksi untuk Periode ${period}: ${prediction}`;
+    await sendToTelegram(message);
+
+    let winLoss = Math.random() > 0.5 ? 'menang' : 'kalah'; // Random win/loss for demonstration
+    recordPrediction({ period, prediction, result: winLoss });
+
+    return res.status(200).json({ message: 'Prediction sent', status: true, predictionHistory });
+};
+
+// Existing functions...
+
+
 module.exports = {
     winGoPage,
     betWinGo,
@@ -845,5 +903,6 @@ module.exports = {
     addWinGo,
     winGoPage3,
     winGoPage5,
-    winGoPage10
+    winGoPage10,
+    winGoPrediction
 }
