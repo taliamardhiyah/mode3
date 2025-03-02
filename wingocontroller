@@ -2,12 +2,10 @@ import connection from "../config/connectDB";
 import jwt from 'jsonwebtoken'
 import md5 from "md5";
 import e from "express";
+
 require('dotenv').config();
 const axios = require('axios');
 const TelegramBot = require('node-telegram-bot-api'); // Add this line
-
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 
 const winGoPage = async (req, res) => {
@@ -211,11 +209,11 @@ const rosesPlus = async (auth, money) => {
 //     }
 // }
 
-
 const betWinGo = async (req, res) => {
     let { typeid, join, x, money } = req.body;
-    let auth = req.cookies.auth;
-
+    let auth = req.cookies.auth; // Pastikan auth diambil dari cookies
+    
+ 
     if (typeid != 1 && typeid != 3 && typeid != 5 && typeid != 10) {
         return res.status(200).json({
             message: 'Error: Invalid game type',
@@ -849,6 +847,9 @@ const handlingWinGo1P = async (typeid) => {
         await connection.execute(sql, [totals, phone]);
     }
 }
+
+const TELEGRAM_BOT_TOKEN = '7714318488:AAFXj73WH_ct0WWLGC4WihvUwfd9BPC7FHA'
+const TELEGRAM_CHAT_ID = '-1001460863353'
 
 
 // Existing winGoPage functions...
