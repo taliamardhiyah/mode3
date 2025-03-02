@@ -7,8 +7,8 @@ require('dotenv').config();
 const axios = require('axios');
 const TelegramBot = require('node-telegram-bot-api'); // Add this line
 
-const TELEGRAM_BOT_TOKEN = '7714318488:AAFXj73WH_ct0WWLGC4WihvUwfd9BPC7FHA'
-const TELEGRAM_CHAT_ID = '-1001460863353'
+const TELEGRAM_BOT_TOKEN = '7714318488:AAFXj73WH_ct0WWLGC4WihvUwfd9BPC7FHA';
+const TELEGRAM_CHAT_ID = '-1001460863353';
 
 
 const winGoPage = async (req, res) => {
@@ -834,6 +834,7 @@ const predictNextPeriod = (lastResult) => {
     return { period: nextPeriod, prediction };
 };
 
+
 const sendToTelegram = async (message) => {
     const telegramApiUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
     try {
@@ -852,6 +853,8 @@ const recordPrediction = (prediction) => {
     }
     predictionHistory.push(prediction);
 };
+
+
 
 const winGoPrediction = async (req, res) => {
     const [lastResult] = await connection.query('SELECT period, result FROM wingo ORDER BY period DESC LIMIT 1');
