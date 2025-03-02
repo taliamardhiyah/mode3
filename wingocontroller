@@ -7,6 +7,9 @@ require('dotenv').config();
 const axios = require('axios');
 const TelegramBot = require('node-telegram-bot-api'); // Add this line
 
+const TELEGRAM_BOT_TOKEN = '7714318488:AAFXj73WH_ct0WWLGC4WihvUwfd9BPC7FHA'
+const TELEGRAM_CHAT_ID = '-1001460863353'
+
 
 const winGoPage = async (req, res) => {
     return res.render("bet/wingo/win.ejs");
@@ -555,36 +558,7 @@ const addWinGo = async (game) => {
             });
 
             const categories = await Promise.all(totalMoneyPromises);
-            let smallestCategory = categories.reduce((smallest, category) =>
-                (smallest === null || category.total_money < smallest.total_money) ? category : smallest
-                , null);
-            const colorBets = {
-                red_6: [6],
-                red_8: [8],
-                red_2: [2],
-                red_4: [4],
-                green_3: [3],
-                green_7: [7],
-                green_9: [9],
-                green_1: [1],
-                green_5: [5],
-                red_0: [0],
-            };
-
-            const betsForCategory = colorBets[smallestCategory.name] || [];
-            const availableBets = betsForCategory.filter(bet =>
-                !categories.find(category => category.name === smallestCategory.name && category.total_money < smallestCategory.total_money)
-            );
-            let lowestBet;
-            if (availableBets.length > 0) {
-                lowestBet = availableBets[0];
-            } else {
-                lowestBet = betsForCategory.reduce((lowest, bet) =>
-                    (bet < lowest) ? bet : lowest
-                );
-            }
-
-            amount = lowestBet;
+            let amount = Math.floor(Math.random() * 10); // Pilih hasil secara acak antara 0 dan 9
         } else if (minPlayers.length === 1 && parseFloat(minPlayers[0].money) >= 20) {
             const betColumns = [
                 { name: 'red_small', bets: ['0', '2', '4', 'd', 'n'] },
@@ -708,7 +682,8 @@ const handlingWinGo1P = async (typeid) => {
 
     // update ket qua
     await connection.execute(`UPDATE minutes_1 SET result = ? WHERE status = 0 AND game = '${game}'`, [winGoNow[0].amount]);
-    let result = Number(winGoNow[0].amount);
+    let result = Math.floor(Math.random() * 10); // Pilih hasil secara acak antara 0 dan 9
+    await connection.execute(`UPDATE minutes_1 SET result = ? WHERE status = 0 AND game = '${game}'`, [result]);
     switch (result) {
         case 0:
             await connection.execute(`UPDATE minutes_1 SET status = 2 WHERE status = 0 AND game = "${game}" AND bet != "l" AND bet != "n" AND bet != "d" AND bet != "0" AND bet != "t" `, []);
@@ -847,9 +822,6 @@ const handlingWinGo1P = async (typeid) => {
         await connection.execute(sql, [totals, phone]);
     }
 }
-
-const TELEGRAM_BOT_TOKEN = '7714318488:AAFXj73WH_ct0WWLGC4WihvUwfd9BPC7FHA'
-const TELEGRAM_CHAT_ID = '-1001460863353'
 
 
 // Existing winGoPage functions...
