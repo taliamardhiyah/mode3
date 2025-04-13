@@ -1361,72 +1361,54 @@ const addUserMoney = async (phone, money) => {
 };
 
 const addUserAccountBalance = async ({ money, phone, invite, rechargeId }) => {
-  const totalRecharge = await rechargeTable.totalRechargeCount(
-    PaymentStatusMap.SUCCESS,
-    phone,
-  );
+    try {
+        // Periksa total recharge untuk menentukan tipe bonus
+        const totalRecharge = await rechargeTable.totalRechargeCount(
+            PaymentStatusMap.SUCCESS,
+            phone
+        );
 
-  let bonus = 0;
-  let turnover = 0;
-  let user_money = money;
+        let bonus = 0;
+        let turnover = 0;
 
-  // Jika ini adalah old member (bukan deposit pertama)
-  if (totalRecharge >= 1) {
-    bonus = (money / 100) * parseInt(process.env.OLD_MEMBER_BONUS_PERCENT); // Bonus 5%
-    user_money += bonus; // Tambahkan bonus ke saldo user
-    turnover = money * parseInt(process.env.OLD_MEMBER_TURNOVER); // Turnover 1x
-  } else {
-    // Jika ini adalah deposit pertama, gunakan bonus pertama
-    bonus = (money / 100) * parseInt(process.env.FIRST_DEPOSIT_BONUS_PERCENT);
-    user_money += bonus;
-    turnover = money * parseInt(process.env.FIRST_DEPOSIT_TURNOVER);
-  }
+        // Tentukan bonus dan turnover berdasarkan apakah ini adalah deposit pertama
+        if (totalRecharge === 0) {
+            // Deposit pertama
+            bonus = (money / 100) * parseInt(process.env.FIRST_DEPOSIT_BONUS_PERCENT || "0", 10);
+            turnover = money * parseInt(process.env.FIRST_DEPOSIT_TURNOVER || "0", 10);
+        } else {
+            // Member lama
+            bonus = (money / 100) * parseInt(process.env.OLD_MEMBER_BONUS_PERCENT || "0", 10);
+            turnover = money * parseInt(process.env.OLD_MEMBER_TURNOVER || "0", 10);
+        }
 
-  await addUserMoney(phone, user_money);
+        const userMoney = money + bonus;
 
-  console.log(phone, money, rechargeId, totalRecharge);
-  await rechargeTable.updateRemainingBet(
-    phone,
-    turnover, // Set turnover baru
-    rechargeId,
-    totalRecharge,
-  );
+        // Tambahkan saldo ke pengguna
+        await addUserMoney(phone, userMoney);
 
-  const rewardType =
-    totalRecharge === 1
-      ? REWARD_TYPES_MAP.FIRST_RECHARGE_BONUS
-      : REWARD_TYPES_MAP.DAILY_RECHARGE_BONUS;
-  await addUserRewards(phone, bonus, rewardType);
+        // Perbarui turnover yang tersisa di database
+        await rechargeTable.updateRemainingBet(phone, turnover, rechargeId, totalRecharge);
 
-  // Update bonus untuk inviter jika ada
-  const inviter = await getUserByInviteCode(invite);
+        console.log(`Turnover ${turnover} ditambahkan untuk deposit sebesar ${money}.`);
 
-  if (inviter) {
-    const firstRechargeBonus =
-      totalRecharge === 1 ? getBonuses(money).uplineBonus : 0;
-    const dailyRechargeBonus = money >= 50000 ? bonus : 0;
-    const totalInviterMoney = firstRechargeBonus + dailyRechargeBonus;
+        // Tambahkan bonus ke pengundang (inviter) jika ada
+        if (invite) {
+            const inviter = await getUserByInviteCode(invite);
 
-    if (firstRechargeBonus !== 0) {
-      await addUserRewards(
-        inviter.phone,
-        firstRechargeBonus,
-        REWARD_TYPES_MAP.FIRST_RECHARGE_AGENT_BONUS,
-      );
+            if (inviter) {
+                const inviterBonus = (money / 100) * parseInt(process.env.AGENT_BONUS_PERCENT || "0", 10);
+                await addUserMoney(inviter.phone, inviterBonus);
+
+                console.log(`Bonus sebesar ${inviterBonus} ditambahkan ke inviter dengan nomor ${inviter.phone}.`);
+            } else {
+                console.warn(`Tidak ditemukan inviter untuk kode undangan: ${invite}`);
+            }
+        }
+    } catch (error) {
+        console.error("Gagal menambahkan saldo akun pengguna:", error);
+        throw new Error("Gagal memproses deposit dan bonus.");
     }
-
-    if (dailyRechargeBonus !== 0) {
-      await addUserRewards(
-        inviter.phone,
-        dailyRechargeBonus,
-        REWARD_TYPES_MAP.DAILY_RECHARGE_AGENT_BONUS,
-      );
-    }
-
-    if (totalInviterMoney !== 0) {
-      await addUserMoney(inviter.phone, totalInviterMoney);
-    }
-  }
 };
 
 const getRechargeOrderId = () => {
