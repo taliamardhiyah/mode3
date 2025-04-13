@@ -1366,45 +1366,65 @@ const addUserAccountBalance = async ({ money, phone, invite, rechargeId }) => {
     phone,
   );
 
-  // Konfigurasi bonus deposit pertama
-  const firstDepositBonusPercent = parseInt(process.env.FIRST_DEPOSIT_BONUS_PERCENT) || 200;
-  const turnoverMultiplier = parseInt(process.env.FIRST_DEPOSIT_TURNOVER) || 5;
+  let bonus = 0;
+  let turnover = 0;
+  let user_money = money;
 
-  // Bonus deposit pertama
-  const firstRechargeBonus = totalRecharge === 1 ? (money * firstDepositBonusPercent) / 100 : 0;
-
-  // Total uang pengguna setelah bonus
-  const totalUserMoney = money + firstRechargeBonus;
-
-  // Hitung turnover (jumlah total yang harus dimainkan)
-  const turnoverRequired = turnoverMultiplier * totalUserMoney;
-
-  // Update saldo pengguna
-  await addUserMoney(phone, totalUserMoney);
-
-  // Update turnover untuk pengguna
-  await rechargeTable.updateRemainingBet(phone, turnoverRequired, rechargeId, totalRecharge);
-
-  // Tambahkan reward untuk pengguna
-  if (firstRechargeBonus > 0) {
-    await addUserRewards(phone, firstRechargeBonus, REWARD_TYPES_MAP.FIRST_RECHARGE_BONUS);
+  // Jika ini adalah old member (bukan deposit pertama)
+  if (totalRecharge >= 1) {
+    bonus = (money / 100) * parseInt(process.env.OLD_MEMBER_BONUS_PERCENT); // Bonus 5%
+    user_money += bonus; // Tambahkan bonus ke saldo user
+    turnover = money * parseInt(process.env.OLD_MEMBER_TURNOVER); // Turnover 1x
+  } else {
+    // Jika ini adalah deposit pertama, gunakan bonus pertama
+    bonus = (money / 100) * parseInt(process.env.FIRST_DEPOSIT_BONUS_PERCENT);
+    user_money += bonus;
+    turnover = money * parseInt(process.env.FIRST_DEPOSIT_TURNOVER);
   }
 
-  // Update bonus untuk agen (bawahan)
-  if (invite) {
-    const agentBonusPercent = parseInt(process.env.AGENT_BONUS_PERCENT) || 10;
-    const agentBonus = (money * agentBonusPercent) / 100;
+  await addUserMoney(phone, user_money);
 
-    const inviter = await getUserByInviteCode(invite);
-    if (inviter) {
+  console.log(phone, money, rechargeId, totalRecharge);
+  await rechargeTable.updateRemainingBet(
+    phone,
+    turnover, // Set turnover baru
+    rechargeId,
+    totalRecharge,
+  );
+
+  const rewardType =
+    totalRecharge === 1
+      ? REWARD_TYPES_MAP.FIRST_RECHARGE_BONUS
+      : REWARD_TYPES_MAP.DAILY_RECHARGE_BONUS;
+  await addUserRewards(phone, bonus, rewardType);
+
+  // Update bonus untuk inviter jika ada
+  const inviter = await getUserByInviteCode(invite);
+
+  if (inviter) {
+    const firstRechargeBonus =
+      totalRecharge === 1 ? getBonuses(money).uplineBonus : 0;
+    const dailyRechargeBonus = money >= 50000 ? bonus : 0;
+    const totalInviterMoney = firstRechargeBonus + dailyRechargeBonus;
+
+    if (firstRechargeBonus !== 0) {
       await addUserRewards(
         inviter.phone,
-        agentBonus,
+        firstRechargeBonus,
         REWARD_TYPES_MAP.FIRST_RECHARGE_AGENT_BONUS,
       );
+    }
 
-      // Tambahkan saldo untuk agen
-      await addUserMoney(inviter.phone, agentBonus);
+    if (dailyRechargeBonus !== 0) {
+      await addUserRewards(
+        inviter.phone,
+        dailyRechargeBonus,
+        REWARD_TYPES_MAP.DAILY_RECHARGE_AGENT_BONUS,
+      );
+    }
+
+    if (totalInviterMoney !== 0) {
+      await addUserMoney(inviter.phone, totalInviterMoney);
     }
   }
 };
@@ -1545,22 +1565,23 @@ const rechargeTable = {
     const totalRecharge = totalRechargeRow[0].count || 0;
     return totalRecharge;
   },
-  updateRemainingBet: async (phone, money, rechargeId, totalRecharge) => {
-    const [previousRecharge] = await connection.query(
-      `SELECT remaining_bet FROM recharge WHERE phone = ? AND status = 1 ORDER BY time_remaining_bet DESC LIMIT 2`,
-      [phone],
-    );
+updateRemainingBet: async (phone, turnover, rechargeId, totalRecharge) => {
+  const [previousRecharge] = await connection.query(
+    `SELECT remaining_bet FROM recharge WHERE phone = ? AND status = 1 ORDER BY time_remaining_bet DESC LIMIT 2`,
+    [phone],
+  );
 
-    const previousRemainingBet = previousRecharge?.[1]?.remaining_bet || 0;
+  const previousRemainingBet = previousRecharge?.[1]?.remaining_bet || 0;
 
-    const totalRemainingBet =
-      totalRecharge === 0 ? money : previousRemainingBet + money;
+  const totalRemainingBet =
+    totalRecharge === 0 ? turnover : previousRemainingBet + turnover;
 
-    await connection.query(
-      "UPDATE recharge SET remaining_bet = ? WHERE id = ?",
-      [totalRemainingBet, rechargeId],
-    );
-  },
+  await connection.query(
+    "UPDATE recharge SET remaining_bet = ? WHERE id = ?",
+    [totalRemainingBet, rechargeId],
+  );
+},
+
   cancelById: async (id) => {
     if (typeof id !== "number") {
       throw Error("Invalid Recharge 'id' expected a number!");
