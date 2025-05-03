@@ -11,234 +11,186 @@
         </script>
 </head>
 
-<body>
-    <style>
-        html {
-            height: 100%;
-        }
+<body><style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #fff3e0; border-radius: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        color: #1e293b; /* biru gelap */
+        font-family: bahnschrift, sans-serif;
+    }
 
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            background-color: #ffffff;
-            color: black;
-        }
+    @font-face {
+        font-family: bahnschrift;
+        font-weight: 500;
+        src: url(/assets/woff2/bahnschrift-610d57ac.woff2);
+    }
 
-        @font-face {
-            font-family: bahnschrift;
-            font-weight: 500;
-            src: url(/assets/woff2/bahnschrift-610d57ac.woff2)
-        }
+    * {
+        box-sizing: border-box;
+    }
 
-        * {
-            box-sizing: border-box;
-            font-family: bahnschrift
-        }
+    main {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        max-width: 550px;
+        margin: 0 auto;
+        padding: 15px 10px;
+    }
 
-        main {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            height: 100%;
-            max-width: 550px;
-            margin-left: auto;
-            margin-right: auto;
-        }
+    header, footer, .tutorial_root, .upi_display_root, .verification_form__root {
+    background: #007991;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
 
-        header {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: #f0f0f5;
-            padding: 6px;
-            margin-left: auto;
-            margin-right: auto;
-            border-radius: 12px;
-            margin: 15px 10px;
-        }
 
-        footer {
-            background-color: #f0f0f5;
-            padding: 6px;
-            text-align: center;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-            margin: 0px 10px;
-            margin-top: auto;
-        }
+    header, footer {
+        text-align: center;
+    }
 
-        .tutorial_root {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: #f0f0f5;
-            padding: 0px 25px 20px;
-            margin-left: auto;
-            margin-right: auto;
-            border-radius: 12px;
-            margin: 15px 10px;
-        }
+    footer {
+        margin-top: auto;
+    }
 
-        .tutorial_content p {
-            display: flex;
-            gap: 6px;
-        }
+    .tutorial_content p,
+    .upi_display_content p {
+        display: flex;
+        gap: 6px;
+        margin: 0;
+    }
 
-        .tutorial_content p strong {
-            white-space: nowrap;
-        }
+    .tutorial_content p strong,
+    .upi_display_content p strong {
+        white-space: nowrap;
+    }
 
-        @media (min-width: 500px) {
-            .tutorial_root {
-                padding: 0px 20px 20px;
-            }
-        }
+    .upi_display_root h2 {
+        margin: 20px 0 5px;
+        font-weight: 600;
+        color: #1e3a8a; /* biru tua */
+    }
 
-        .upi_display_root {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: #f0f0f5;
-            padding: 0px 25px 20px;
-            margin-left: auto;
-            margin-right: auto;
-            border-radius: 12px;
-            margin: 15px 10px;
-        }
+    .upi_display_content {
+        margin-top: 10px;
+        padding: 10px 13px;
+        border-radius: 9px;
+        border: 1px solid #cbd5e1;
+        font-size: 14px;
+        cursor: pointer;
+        background-color: linear-gradient(to bottom right, #eef2ff, #e0e7ff);
+    }
 
-        .upi_display_root h2 {
-            margin: 20px 0px 5px;
-            font-weight: 600;
-        }
+    .upi_display_content__img {
+        width: 15px;
+        height: 15px;
+        margin-left: 5px;
+        cursor: pointer;
+    }
 
-        .upi_display_content {
-            margin-top: 10px;
-            padding: 0px 13px;
-            border-radius: 9px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-            cursor: pointer;
-        }
+    .verification_form__root {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
 
-        .upi_display_content p {
-            display: flex;
-            gap: 6px;
-        }
+    .verification_form__root label {
+        font-weight: 600;
+    }
 
-        .upi_display_content p strong {
-            white-space: nowrap;
-        }
+    .verification_form__root input {
+        padding: 10px 13px;
+        border-radius: 9px;
+        border: 1px solid #cbd5e1;
+        font-size: 14px;
+        background-color: #ffffff;
+    }
 
-        .upi_display_content__img {
-            width: 15px;
-            height: 15px;
-            cursor: pointer;
-            margin-left: 5px;
-        }
+    .verification_form__root input::placeholder {
+        font-size: 14px;
+        color: #94a3b8; /* placeholder soft gray */
+    }
 
-        .verification_form__root {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            /* align-items: center; */
-            background: #f0f0f5;
-            padding: 10px 25px 25px;
-            margin-left: auto;
-            margin-right: auto;
-            border-radius: 12px;
-            margin: 15px 10px;
-        }
+    .verification_form__root button {
+        padding: 10px;
+        font-size: 1rem;
+        font-weight: 700;
+        border: none;
+        border-radius: 99rem;
+        background: linear-gradient(131deg, #3b82f6 0%, #1e3a8a 100%);
+        color: #ffffff;
+        cursor: pointer;
+    }
 
-        .verification_form__root label {
-            margin-top: 10px;
-            font-weight: 600;
-        }
+    .upi_pay_now {
+        padding: 10px 15px;
+        border-radius: 9px;
+        border: none;
+        background: linear-gradient(180deg, #3b82f6 0%, #1e3a8a 100%);
+        font-weight: 500;
+        color: #ffffff;
+        font-size: 16px;
+        cursor: pointer;
+        text-align: center;
+        margin-top: 10px;
+        text-decoration: none;
+    }
 
-        .verification_form__root input {
-            margin-top: 10px;
-            padding: 10px 13px;
-            border-radius: 9px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-        }
+    /* Notifikasi Pop-up */
+    .notif-box {
+        position: fixed;
+        top: 20%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #ede7f6;
+        border: 2px solid #f87171; /* coral */
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        padding: 20px;
+        z-index: 9999;
+        width: 300px;
+        text-align: center;
+        animation: fadeIn 0.4s ease;
+    }
 
-        .verification_form__root input::placeholder {
-            font-size: 14px;
-        }
+    .notif-content p {
+        color: #f87171;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
 
-        .verification_form__root button {
-            margin-top: 10px;
-            padding: 10px;
-            user-select: none;
-            font: inherit;
-            color: #61a9ff;
-            font-size: 1rem;
-            font-weight: 700;
-            letter-spacing: .01333rem;
-            border: none;
-            border-radius: 99rem;
-            background: linear-gradient(131deg, #f2d5b2 0%, #22275b 100%);
-        }
+    .notif-content button {
+        padding: 8px 16px;
+        background-color: #003f5c;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
 
-        .upi_pay_now {
-            margin-top: 10px;
-            padding: 10px 15px;
-            border-radius: 9px;
-            border: 1px solid #ccc;
-            background-color: #1c4ff7;
-            background: linear-gradient(180deg, #CCF2F4 0%, #A4EBF3 100%);
-            font-weight: 500;
-            color: #ffffff;
-            font-size: 16px;
-            cursor: pointer;
-            text-decoration: none;
-            text-align: center;
-        }
-    </style>
-    <div id="simpleNotif" class="notif-box">
-  <div class="notif-content">
-    <p>⚠️ Jangan lupa Pilih bank anda,<strong>Lalu isi Nomor rekening anda<strong>, Klik sudah membayar</strong>.</p>
-    <button onclick="closeNotif()">OK</button>
-  </div>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translate(-50%, -30%); }
+        to { opacity: 1; transform: translate(-50%, 0); }
+    }
+</style>
+
+<!-- Notifikasi Pop-up -->
+<div id="simpleNotif" class="notif-box">
+    <div class="notif-content">
+        <p>⚠️ Jangan lupa pilih bank Anda, <strong>isi nomor rekening</strong>, lalu klik <strong>Sudah Membayar</strong>.</p>
+        <button onclick="closeNotif()">OK, Saya mengerti</button>
+    </div>
 </div>
 
-<style>
-.notif-box {
-  position: fixed;
-  top: 20%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #fff;
-  border: 2px solid #f14c4c;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.2);
-  padding: 20px;
-  z-index: 9999;
-  width: 300px;
-  text-align: center;
-  animation: fadeIn 0.4s ease;
-}
-.notif-content p {
-  color: #f14c4c;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-.notif-content button {
-  padding: 8px 16px;
-  background-color: #f14c4c;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translate(-50%, -30%); }
-  to { opacity: 1; transform: translate(-50%, 0); }
-}
-</style>
+<script>
+    function closeNotif() {
+        document.getElementById("simpleNotif").style.display = "none";
+    }
+</script>
 
 
     <main>
@@ -299,19 +251,25 @@
 </style>
 
 
-
-
-
-<!--  JAGO -->
-<div class="upi_display_content" style="cursor:pointer;" onclick="copyUPIJago()">
-    <p>
-        <strong>BANK JAGO:</strong>
-        <span id="upi_id_jago"><%= 107600868374 %></span> <!-- Variabel dari backend -->
-    </p>
-    <img class="upi_display_content__img"
-        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTe_yKlugQKGhZTbhRjQJBxB-DwU30HT_Gto00Uk3Pgjcbpkt8zDksnqEcSZbR1teb4eP0&usqp=CAU"
-        alt="copy upi id" style="width: 30px; height: 30px; margin-top: 5px;" />
-</div>
+<!-- Bagian Bank Jago -->
+<table class="payment-table">
+  <tr>
+    <td>
+      <h3>UPI Payment - Bank Jago</h3>
+      <div class="upi_display_content" style="cursor:pointer;" onclick="copyUPIJago()">
+        <p>
+          <strong>BANK JAGO:</strong>
+          <span id="upi_id_jago"><%= 107600868374 %></span> <!-- Variabel dari backend -->
+        </p>
+      </div>
+    </td>
+    <td>
+      <img class="upi_display_content__img"
+           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTe_yKlugQKGhZTbhRjQJBxB-DwU30HT_Gto00Uk3Pgjcbpkt8zDksnqEcSZbR1teb4eP0&usqp=CAU"
+           alt="copy upi id" style="width: 30px; height: 30px; margin-top: 5px;" />
+    </td>
+  </tr>
+</table>
 
 <script>
 function copyUPIJago() {
@@ -326,16 +284,25 @@ function copyUPIJago() {
 }
 </script>
 
-            <!-- Tampilan rekening -->
-<div class="upi_display_content" style="cursor:pointer;" onclick="copyUPIID()">
-    <p>
-        <strong>BRI - Sarkiyah:</strong>
-        <span id="upi_id_field">424301010640535</span>
-    </p>
-    <img class="upi_display_content__img"
-        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTe_yKlugQKGhZTbhRjQJBxB-DwU30HT_Gto00Uk3Pgjcbpkt8zDksnqEcSZbR1teb4eP0&usqp=CAU"
-        alt="copy upi id" style="width: 30px; height: 30px; margin-top: 5px;" />
-</div>
+<!-- Bagian Bank BRI -->
+<table class="payment-table">
+  <tr>
+    <td>
+      <h3>UPI Payment - Bank BRI</h3>
+      <div class="upi_display_content" style="cursor:pointer;" onclick="copyUPIID()">
+        <p>
+          <strong>BRI - Sarkiyah:</strong>
+          <span id="upi_id_field">424301010640535</span>
+        </p>
+      </div>
+    </td>
+    <td>
+      <img class="upi_display_content__img"
+           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTe_yKlugQKGhZTbhRjQJBxB-DwU30HT_Gto00Uk3Pgjcbpkt8zDksnqEcSZbR1teb4eP0&usqp=CAU"
+           alt="copy upi id" style="width: 30px; height: 30px; margin-top: 5px;" />
+    </td>
+  </tr>
+</table>
 
 <script>
 function copyUPIID() {
@@ -346,7 +313,7 @@ function copyUPIID() {
     tempInput.select();
     document.execCommand("copy");
     document.body.removeChild(tempInput);
-    alert("Nomor rekening disalin: " + upiField.textContent);
+    alert("Nomor rekening BRI disalin: " + upiField.textContent);
 }
 </script>
 
@@ -385,50 +352,29 @@ function copyUPIID() {
         </form>
 
         <div class="tutorial_root">
-    <h3 class="tutorial_title">Panduan Isi Ulang Saldo</h3>
+    <h3 class="tutorial_title">Terima Kasih atas Dukungan Anda 💙</h3>
     <div class="tutorial_content">
         <p>
-            <strong>Langkah 1:</strong>
-            <span>
-                Buka aplikasi e-wallet atau mobile banking Anda (seperti DANA, OVO, GoPay, LinkAja, atau aplikasi bank lainnya).
-            </span>
+            Kami sangat menghargai kepercayaan Anda telah melakukan deposit di platform kami.
         </p>
         <p>
-            <strong>Langkah 2:</strong>
-            <span>
-                Pilih menu <em>"Kirim Uang"</em>, lalu masukkan salah satu dari tujuan berikut:
-                <br />
-                <strong>• UPI ID:</strong> <span id="upi_id_field"><%= UpiId %></span><br />
-                <strong>• Nomor Rekening:</strong> 1234567890<br />
-                <strong>• Bank:</strong> BCA (Bank Central Asia)<br />
-                <strong>• Nama Penerima:</strong> PT Dana Aman Sentosa
-            </span>
+            Setiap transaksi yang Anda lakukan membantu kami terus berkembang dan memberikan layanan yang lebih baik lagi untuk Anda.
         </p>
         <p>
-            <strong>Langkah 3:</strong>
-            <span>
-                Masukkan jumlah yang ingin Anda transfer, lalu selesaikan proses pembayaran seperti biasa.
-            </span>
-        </p>
-        <p style="color: #e53935; font-weight: bold;">
-            ⚠️ Penting! Setelah transaksi berhasil, simpan atau salin **ID Transaksi / Nomor Referensi** dari aplikasi Anda.
+            Tim kami sedang memproses deposit Anda. Mohon tunggu beberapa saat — saldo akan segera masuk ke akun Anda.
         </p>
         <p>
-            <strong>Langkah 4:</strong>
-            <span>
-                Kembali ke halaman ini dan masukkan <strong>ID Transaksi</strong> pada kolom yang tersedia.
-                Pastikan juga Anda memilih tujuan transfer yang sesuai (rekening bank atau e-wallet) agar proses verifikasi lebih cepat.
-            </span>
+            Jangan lupa untuk menyimpan</p> <strong>ID Transaksi</strong> sebagai bukti jika diperlukan konfirmasi lebih lanjut.
         </p>
         <p>
-            <strong>Langkah 5:</strong>
-            <span>
-                Klik tombol <em>"Sudah membayar"</em> untuk menyelesaikan pengisian saldo.
-                Tim kami akan segera memverifikasi dan saldo akan masuk ke akun Anda dalam waktu singkat.
-            </span>
+            Jika ada pertanyaan atau kendala, tim support kami siap membantu Anda kapan saja.
+        </p>
+        <p style="margin-top: 15px; font-weight: 500; color: #4CAF50;">
+            Sekali lagi, terima kasih telah memilih kami. Selamat bermain dan semoga beruntung! 🍀
         </p>
     </div>
 </div>
+
 
 
         <footer>
