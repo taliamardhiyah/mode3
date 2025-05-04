@@ -29,6 +29,10 @@ const calculateDepositBonus = (amount) => {
         bonus = amount * 1.2; // Bonus 120% untuk deposit 150.000 - 500.000
     } else if (amount > 500100) {
         bonus = amount * 1.5; // Bonus 150% untuk deposit di atas 500.100
+    } else if (amount >= 10000000) { 
+        bonus = amount * 1.7; // Contoh tambahan untuk deposit 20 juta
+    } else if (amount >= 100000000) { 
+        bonus = amount * 2.1; // Contoh tambahan untuk deposit 100 juta
     }
 
     return { bonus, turnoverMultiplier };
@@ -1175,7 +1179,7 @@ const setRechargeStatus = async (req, res) => {
       });
     }
     
-    if (data.status === PaymentStatusMap.SUCCESS) {
+if (data.status === PaymentStatusMap.SUCCESS) {
     const user = await getUserDataByPhoneNumber(recharge.phone);
 
     // Perbarui status recharge ke sukses
@@ -1754,6 +1758,8 @@ const rspay = {
 };
 
 const paymentController = {
+  applyDepositBonus,
+  calculateDepositBonus,
   initiateUPIPayment,
   verifyUPIPayment,
   initiateWowPayPayment,
