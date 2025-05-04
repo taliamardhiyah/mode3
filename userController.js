@@ -3628,44 +3628,81 @@ const authorizeKingmakerAccount = async (phone, userip, username) => {
 const getKingmakerBalance = async (req, res) => {
     let auth = req.cookies.auth;
 
+    // Mendapatkan IP Address dari header atau fallback ke req.ip
     const ipAddress = req.headers["x-forwarded-for"] || req.ip;
 
-    const [user] = await connection.query(
-        "SELECT `phone`, `code`, `invite`, `kingmaker_account`, `name_user`  FROM users WHERE `token` = ? ",
-        [auth]
-    );
-
-    let userInfo = user[0];
-
-    if (!userInfo) {
-        return res.status(200).json({
-            message: "Failed. Authentication failure",
-            status: false,
-            timeStamp: timeNow,
-        });
-    }
-
-    if (!userInfo.kingmaker_account) {
-        await authorizeKingmakerAccount(
-            userInfo.phone,
-            ipAddress,
-            userInfo.name_user
+    try {
+        // Query untuk mendapatkan informasi pengguna
+        const [user] = await connection.query(
+            "SELECT `phone`, `code`, `invite`, `kingmaker_account`, `name_user`  FROM users WHERE `token` = ? ",
+            [auth]
         );
-    }
 
-    const result = await Kingmaker.getBalance(userInfo.kingmaker_account);
+        let userInfo = user[0];
 
-    if (result.success) {
-        return res.status(200).json({
-            message: result.data,
-            status: true,
-            timeStamp: timeNow,
-        });
-    } else {
-        return res.status(200).json({
-            message: result.data,
+        // Validasi apakah pengguna ditemukan
+        if (!userInfo) {
+            return res.status(200).json({
+                message: "Failed. Authentication failure",
+                status: false,
+                timeStamp: Date.now(),
+            });
+        }
+
+        // Jika akun Kingmaker belum ada, buat terlebih dahulu
+        if (!userInfo.kingmaker_account) {
+            const authResult = await authorizeKingmakerAccount(
+                userInfo.phone,
+                ipAddress,
+                userInfo.name_user
+            );
+
+            // Validasi apakah otorisasi berhasil
+            if (!authResult.status) {
+                return res.status(200).json({
+                    message: "Failed to authorize Kingmaker account",
+                    status: false,
+                    timeStamp: Date.now(),
+                });
+            }
+        }
+
+        // Memanggil fungsi untuk mendapatkan saldo dari akun Kingmaker
+        const result = await Kingmaker.getBalance(userInfo.kingmaker_account);
+
+        // Validasi apakah response sukses
+        if (result.success) {
+            // Pastikan response adalah JSON valid
+            try {
+                const balanceData = JSON.parse(result.data);
+                return res.status(200).json({
+                    message: balanceData,
+                    status: true,
+                    timeStamp: Date.now(),
+                });
+            } catch (parseError) {
+                console.error("JSON Parsing Error:", parseError);
+                return res.status(500).json({
+                    message: "Invalid response format from Kingmaker API",
+                    status: false,
+                    timeStamp: Date.now(),
+                });
+            }
+        } else {
+            // Jika response gagal, kembalikan pesan error dari Kingmaker
+            return res.status(200).json({
+                message: result.data || "Failed to retrieve balance",
+                status: false,
+                timeStamp: Date.now(),
+            });
+        }
+    } catch (error) {
+        // Penanganan error umum
+        console.error("Error in getKingmakerBalance:", error);
+        return res.status(500).json({
+            message: "An unexpected error occurred",
             status: false,
-            timeStamp: timeNow,
+            timeStamp: Date.now(),
         });
     }
 };
